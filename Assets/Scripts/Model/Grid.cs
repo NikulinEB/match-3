@@ -73,7 +73,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    private List<Cell> CheckMatches()
+    private List<Cell> FindMatches()
     {
         List<Cell> matches = new List<Cell>();
         int matchCounter = 0;
@@ -155,9 +155,67 @@ public class Grid : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
+    private bool IsMatchExist()
+    {
+        for (int i = 0; i < _cells.GetLength(0); i++)
+        {
+            for (int j = 0; j < _cells.GetLength(1); j++)
+            {
+                // Проверка горизонтального совпадения с двумя объектами рядом.
+                if (IsMatchPattern(i, j, new int[,] { { 0, 1 } }, new int[,] { { -1, -1 }, { 1, -1 }, { 0, -2 }, { 1, 2 }, { -1, 2 }, { 0, 3 } }))
+                    return true;
+
+                // Проверка горизонального совпадения с двумя объектами через один пропуск.
+                if (IsMatchPattern(i, j, new int[,] { { 0, 2} }, new int[,] { { -1, 1}, { 1, 1} }))
+                    return true;
+
+                // Проверка вертикального совпадения с двумя объектами рядом.
+                if (IsMatchPattern(i, j, new int[,] { { 1, 0} }, new int[,] { { -2, 0}, { -1, -1}, { -1, 1}, { 3, 0}, { 2, -1}, { 2, 1} }))
+                    return true;
+
+                // Проверка вертикального совпадения с двумя объектами через один пропуск.
+                if (IsMatchPattern(i, j, new int[,] { { 2, 0} }, new int[,] { { 1, -1}, { 1, 1} }))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsMatchPattern(int iIndex, int jIndex, int[,] matchAll, int[,] matchOne)
+    {
+        ObjectColor color = _cells[iIndex, jIndex].GridObject.Color;
+        // Проверка обязательного совпадения.
+        for (int i = 0; i < matchAll.GetLength(0); i++)
+        {
+            if (!IsMatchColor(iIndex + matchAll[i, 0], jIndex + matchAll[i, 1], color))
+            {
+                return false;
+            }
+        }
+
+        // До первого совпадения.
+        for (int i = 0; i < matchOne.Length; i++)
+        {
+            if (IsMatchColor(iIndex + matchOne[i, 0], jIndex + matchOne[i, 1], color))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsMatchColor(int iIndex, int jIndex, ObjectColor color)
+    {
+        if (iIndex < 0 || iIndex >= _cells.GetLength(0) || jIndex < 0 || jIndex > _cells.GetLength(1))
+        {
+            return false;
+        }
+        else
+        {
+            return _cells[iIndex, jIndex].GridObject.Color == color;
+        }
+    }
+
     private void MoveCellsDown()
     {
 
@@ -165,7 +223,7 @@ public class Grid : MonoBehaviour
 
     public void DebugButton()
     {
-        var matches = CheckMatches();
+        var matches = FindMatches();
 
         foreach (var cell in matches)
         {
