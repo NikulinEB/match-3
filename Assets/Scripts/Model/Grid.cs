@@ -14,12 +14,12 @@ public class Grid : MonoBehaviour
     {
         InitGrid();
         SetRandomObjects();
-        Events.Swipe += SwipeObjects;
+        Events.Swipe += SwipeCells;
     }
 
     private void OnDestroy()
     {
-        Events.Swipe -= SwipeObjects;
+        Events.Swipe -= SwipeCells;
     }
 
     private void InitGrid()
@@ -43,34 +43,44 @@ public class Grid : MonoBehaviour
     {
         foreach (var cell in _cells)
         {
-            cell.SetGridObject(_gridObjects[UnityEngine.Random.Range(0, (int)_gridObjects.Length)]);
+            cell.SetGridObject(GetRandomGridObject());
         }
-
     }
 
-    private void SwipeObjects(Cell cell, SwipeTurn swipeTurn)
+    private void SwipeCells(Cell cell, SwipeTurn swipeTurn)
     {
         var gridObject = cell.GridObject;
         //TO DO: проверка на крайние объекты
         switch(swipeTurn)
         {
             case SwipeTurn.Left:
-                _cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex, cell.jIndex - 1].GridObject);
-                _cells[cell.iIndex, cell.jIndex - 1].SetGridObject(gridObject);
+                SwapCells(cell, _cells[cell.iIndex, cell.jIndex - 1]);
+                //_cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex, cell.jIndex - 1].GridObject);
+                //_cells[cell.iIndex, cell.jIndex - 1].SetGridObject(gridObject);
                 break;
             case SwipeTurn.Right:
-                _cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex, cell.jIndex + 1].GridObject);
-                _cells[cell.iIndex, cell.jIndex + 1].SetGridObject(gridObject);
+                SwapCells(cell, _cells[cell.iIndex, cell.jIndex + 1]);
+                //_cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex, cell.jIndex + 1].GridObject);
+                //_cells[cell.iIndex, cell.jIndex + 1].SetGridObject(gridObject);
                 break;
             case SwipeTurn.Up:
-                _cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex - 1, cell.jIndex].GridObject);
-                _cells[cell.iIndex - 1, cell.jIndex].SetGridObject(gridObject);
+                SwapCells(cell, _cells[cell.iIndex - 1, cell.jIndex]);
+                //_cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex - 1, cell.jIndex].GridObject);
+                //_cells[cell.iIndex - 1, cell.jIndex].SetGridObject(gridObject);
                 break;
             case SwipeTurn.Down:
-                _cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex + 1, cell.jIndex].GridObject);
-                _cells[cell.iIndex + 1, cell.jIndex].SetGridObject(gridObject);
+                SwapCells(cell, _cells[cell.iIndex + 1, cell.jIndex]);
+                //_cells[cell.iIndex, cell.jIndex].SetGridObject(_cells[cell.iIndex + 1, cell.jIndex].GridObject);
+                //_cells[cell.iIndex + 1, cell.jIndex].SetGridObject(gridObject);
                 break;
         }
+    }
+
+    private void SwapCells(Cell cell1, Cell cell2)
+    {
+        var gridObject = cell1.GridObject;
+        cell1.SetGridObject(cell2.GridObject);
+        cell2.SetGridObject(gridObject);
     }
 
     private List<Cell> FindMatches()
@@ -194,7 +204,7 @@ public class Grid : MonoBehaviour
         }
 
         // До первого совпадения.
-        for (int i = 0; i < matchOne.Length; i++)
+        for (int i = 0; i < matchOne.GetLength(0); i++)
         {
             if (IsMatchColor(iIndex + matchOne[i, 0], jIndex + matchOne[i, 1], color))
             {
@@ -206,7 +216,7 @@ public class Grid : MonoBehaviour
 
     private bool IsMatchColor(int iIndex, int jIndex, ObjectColor color)
     {
-        if (iIndex < 0 || iIndex >= _cells.GetLength(0) || jIndex < 0 || jIndex > _cells.GetLength(1))
+        if (iIndex < 0 || iIndex >= _cells.GetLength(0) || jIndex < 0 || jIndex >= _cells.GetLength(1))
         {
             return false;
         }
@@ -218,10 +228,44 @@ public class Grid : MonoBehaviour
 
     private void MoveCellsDown()
     {
-
+        for (int j = _cells.GetLength(1) - 1; j >= 0; j--)
+        {
+            for (int i = _cells.GetLength(0) - 1; i >= 0; i--)
+            {
+                int iNotNull = i;
+                while (_cells[iNotNull, j].GridObject == null && iNotNull > 0)
+                {
+                    iNotNull--;
+                }
+                if (iNotNull != i)
+                {
+                    if (_cells[iNotNull, j].GridObject != null)
+                    {
+                        _cells[i, j].SetGridObject(_cells[iNotNull, j].GridObject);
+                        _cells[iNotNull, j].ResetCell();
+                    }
+                }
+            }
+        }
     }
 
-    public void DebugButton()
+    private void FillEmptyCells()
+    {
+        foreach(var cell in _cells)
+        {
+            if (cell.GridObject == null)
+            {
+                cell.SetGridObject(GetRandomGridObject());
+            }
+        }
+    }
+
+    private GridObject GetRandomGridObject()
+    {
+        return _gridObjects[UnityEngine.Random.Range(0, (int)_gridObjects.Length)];
+    }
+
+    public void FindAndDeleteMatches()
     {
         var matches = FindMatches();
 
@@ -230,5 +274,20 @@ public class Grid : MonoBehaviour
             Debug.Log("Cell: " + cell.iIndex + ", " + cell.jIndex);
         }
         DeleteMatches(matches);
+    }
+
+    public void MoveDown()
+    {
+        MoveCellsDown();
+    }
+
+    public void FillCells()
+    {
+        FillEmptyCells();
+    }
+
+    public void CheckMatches()
+    {
+        Debug.Log("Match exist: " + IsMatchExist());
     }
 }
