@@ -10,4 +10,10 @@ public class Events
 
     public static event Action Matched;
     public static void Matched_Call() { Matched?.Invoke(); }
+
+    public static event Action<MenuType> ShowMenu;
+    public static void ShowMenu_Call(MenuType menuType) { ShowMenu?.Invoke(menuType); }
+
+    public static event Action LevelStarted;
+    public static void LevelStarted_Call() { LevelStarted?.Invoke(); }
 }

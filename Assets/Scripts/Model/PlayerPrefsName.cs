@@ -1,5 +1,6 @@
 ﻿public enum PlayerPrefsName
 {
     Sound,
-    PointsCount
+    PointsCount,
+    CurrentLevel
 }

@@ -6,13 +6,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
-public class Cell : MonoBehaviour, IComparable<Cell> //, IComparer<Cell>
+public class Cell : MonoBehaviour, IComparable<Cell>
 {
     [SerializeField]
     private float swipeDuration = 1;
-    //[HideInInspector]
+    [HideInInspector]
     public int iIndex;
-    //[HideInInspector]
+    [HideInInspector]
     public int jIndex;
     public GridObject GridObject { get; private set; }
     private Image _image;
@@ -101,36 +101,6 @@ public class Cell : MonoBehaviour, IComparable<Cell> //, IComparer<Cell>
             yield return null;
         }
         _rectTransform.localScale = new Vector3(1, 1, 1);
-    }
-
-
-    public int Compare(Cell x, Cell y)
-    {
-        RectTransform xRect = x.GetComponent<RectTransform>();
-        RectTransform yRect = y.GetComponent<RectTransform>();
-        // Если выше, то ближе к началу массива
-        if (xRect.anchoredPosition.y > yRect.anchoredPosition.y)
-        {
-            return -1;
-        }
-        else if (xRect.anchoredPosition.y < yRect.anchoredPosition.y)
-        {
-            return 1;
-        }
-        // Если правее, то ближе к концу массива
-        else if (xRect.anchoredPosition.x > yRect.anchoredPosition.x)
-        {
-            return 1;
-        }
-        else if (xRect.anchoredPosition.x < yRect.anchoredPosition.x)
-        {
-            return -1;
-        }
-        else
-        {
-            return 0;
-        }
-
     }
 
     public int CompareTo(Cell other)

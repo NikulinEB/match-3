@@ -72,27 +72,42 @@ public class GridController : MonoBehaviour
         {
             case SwipeTurn.Left:
                 if (cell.jIndex - 1 < 0)
+                {
+                    GameController.Instance.EnableControl();
                     return;
+                }
                 cell2 = _cells[cell.iIndex, cell.jIndex - 1];
                 break;
             case SwipeTurn.Right:
-                if (cell.jIndex + 1 > _cells.GetLength(1))
+                if (cell.jIndex + 1 >= _cells.GetLength(1))
+                {
+                    GameController.Instance.EnableControl();
                     return;
+                }
                 cell2 = _cells[cell.iIndex, cell.jIndex + 1];
                 break;
             case SwipeTurn.Up:
                 if (cell.iIndex - 1 < 0)
+                {
+                    GameController.Instance.EnableControl();
                     return;
+                }
                 cell2 = _cells[cell.iIndex - 1, cell.jIndex];
                 break;
             case SwipeTurn.Down:
-                if (cell.iIndex + 1 > _cells.GetLength(0))
+                if (cell.iIndex + 1 >= _cells.GetLength(0))
+                {
+                    GameController.Instance.EnableControl();
                     return;
+                }
                 cell2 = _cells[cell.iIndex + 1, cell.jIndex];
                 break;
             default:
                 if (cell.iIndex + 1 > _cells.GetLength(0))
+                {
+                    GameController.Instance.EnableControl();
                     return;
+                }
                 cell2 = _cells[cell.iIndex + 1, cell.jIndex];
                 break;
         }
@@ -101,7 +116,6 @@ public class GridController : MonoBehaviour
 
     private IEnumerator Swipe(Cell cell1, Cell cell2)
     {
-        //WriteGridButton();
         int movedCellsCounter = 0;
         float cellPositionX = startPositionX + cell1.jIndex * offsetX;
         float cellPositionY = startPositionY + cell1.iIndex * offsetY;
@@ -125,11 +139,6 @@ public class GridController : MonoBehaviour
         {
             do
             {
-                //_debugWaiting = true;
-                //yield return new WaitWhile(() => _debugWaiting);
-                //ShowMatches();
-                //_debugWaiting = true;
-                //yield return new WaitWhile(() => _debugWaiting);
                 _debugWaiting = true;
                 DeleteMatches(FindMatches(), () => { _debugWaiting = false; });
                 yield return new WaitWhile(() => _debugWaiting);
@@ -415,11 +424,6 @@ public class GridController : MonoBehaviour
             resultGrid += "\n";
         }
         Debug.Log(resultGrid);
-    }
-
-    public void StopWaitingButton()
-    {
-        _debugWaiting = false;
     }
 
     public void ShowMatchesButton()

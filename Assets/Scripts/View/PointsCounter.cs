@@ -10,15 +10,22 @@ public class PointsCounter : MonoBehaviour
     {
         _counter = GetComponent<Text>();
         Events.Matched += UpdateCounter;
+        Events.LevelStarted += ResetCounter;
     }
 
     private void OnDestroy()
     {
         Events.Matched -= UpdateCounter;
+        Events.LevelStarted -= ResetCounter;
     }
 
     private void UpdateCounter()
     {
-        _counter.text = GameController.Instance.MatchPoints.ToString();
+        _counter.text = "SCORE: " + GameController.Instance.MatchPoints.ToString();
+    }
+
+    private void ResetCounter()
+    {
+        _counter.text = "SCORE: 0";
     }
 }

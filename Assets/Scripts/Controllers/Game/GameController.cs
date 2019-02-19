@@ -52,7 +52,7 @@ public class GameController : MonoBehaviour
 
     public int MatchPoints { get; private set; }
 
-    private bool _sound;
+    private bool _sound = true;
 
     public bool Sound
     {
@@ -66,13 +66,40 @@ public class GameController : MonoBehaviour
         }
     }
 
+    private int _currentLevel = 1;
+
+    public int CurrentLevel {
+        get
+        {
+            return _currentLevel;
+        }
+        set
+        {
+            _currentLevel = value;
+            PlayerPrefs.SetInt(PlayerPrefsName.CurrentLevel.ToString(), value);
+        }
+    }
+
     public bool ControlEnabled { get; private set; } = true;
+
+    [Tooltip("Count of matches that player have to score.")]
+    [SerializeField]
+    private int[] _levelsPoints;
+    [Tooltip("Seconds to complete level. Array length shoud be equal to LevelsPoint.")]
+    [SerializeField]
+    private int[] _levelsSeconds;
+
+    public int[,] LevelsGoals;
+
+    private int _levelTimer;
 
     private void Awake()
     {
-        GetPlayerPrefs();
+        LoadPlayerPrefs();
+        SetLevelsGoals();
         Events.ToggleControl += ToggleControl;
-        //Events.LevelLoaded += EnableControl;
+        Events.LevelStarted += EnableControl;
+        Events.Matched += CheckLevelEnd;
         //Events.ContinueLevel += EnableControl;
         //Events.Death += DisableControl;
     }
@@ -80,12 +107,13 @@ public class GameController : MonoBehaviour
     private void OnDestroy()
     {
         Events.ToggleControl -= ToggleControl;
-        //Events.LevelLoaded -= EnableControl;
+        Events.LevelStarted -= EnableControl;
+        Events.Matched -= CheckLevelEnd;
         //Events.ContinueLevel -= EnableControl;
         //Events.Death -= DisableControl;
     }
 
-    private void GetPlayerPrefs()
+    private void LoadPlayerPrefs()
     {
         if (PlayerPrefs.HasKey(PlayerPrefsName.PointsCount.ToString()))
         {
@@ -107,9 +135,19 @@ public class GameController : MonoBehaviour
                 Sound = false;
             }
         }
-        else
+        if (PlayerPrefs.HasKey(PlayerPrefsName.CurrentLevel.ToString()))
         {
-            Sound = true;
+            CurrentLevel = PlayerPrefs.GetInt(PlayerPrefsName.CurrentLevel.ToString());
+        }
+    }
+
+    private void SetLevelsGoals()
+    {
+        LevelsGoals = new int[_levelsPoints.Length,2];
+        for (int i = 0; i < LevelsGoals.GetLength(0); i++)
+        {
+            LevelsGoals[i, 0] = _levelsPoints[i];
+            LevelsGoals[i, 1] = _levelsSeconds[i];
         }
     }
 
@@ -131,5 +169,37 @@ public class GameController : MonoBehaviour
     public void AddPoints(int points)
     {
         MatchPoints += points;
+    }
+
+    public void StartLevel()
+    {
+        MatchPoints = 0;
+        _levelTimer = Timer.Instance.DoAfter(LevelsGoals[CurrentLevel - 1, 1], EndLevel);
+        Events.LevelStarted_Call();
+    }
+
+    private void EndLevel()
+    {
+        if (MatchPoints >= LevelsGoals[CurrentLevel - 1, 0])
+        {
+            if (CurrentLevel < LevelsGoals.GetLength(0))
+            {
+                CurrentLevel++;
+            }
+            Events.ShowMenu_Call(MenuType.Win);
+        }
+        else
+        {
+            Events.ShowMenu_Call(MenuType.Defeat);
+        }
+    }
+
+    private void CheckLevelEnd()
+    {
+        if (MatchPoints >= LevelsGoals[CurrentLevel - 1, 0])
+        {
+            Timer.Instance.StopTimer(_levelTimer);
+            EndLevel();
+        }
     }
 }
